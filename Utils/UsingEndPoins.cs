@@ -1,17 +1,17 @@
 ﻿using IteraClient.Models;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using IteraClient.Services;
 
 namespace IteraClient.Utils;
 
-
 public static class UsingEndPoins
 {
-    public static async Task<IteraStatusResponse> GetIteraStatusAsync(this HttpClient httpClient, Guid id)
+    public static async Task<IteraStatusResponse> GetIteraStatusAsync(this IteraAuthService iteraAuthService, Guid id)
     {
-        var endpoints = GetEndPoints();
+        using var httpClient = await iteraAuthService.CreateAuthorizedClientAsync();
 
-        var url = string.Format(endpoints.IteraStatus, id);
+        var url = string.Format(iteraAuthService.EndPoints.IteraStatus, id);
 
         var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
         response.EnsureSuccessStatusCode();
@@ -19,18 +19,18 @@ public static class UsingEndPoins
         return JsonSerializer.Deserialize<IteraStatusResponse>(await response.Content.ReadAsStringAsync()) ?? new IteraStatusResponse();
     }
 
-    public static async Task<List<ControladoraResponse>> GetExportJsonAsync(this HttpClient httpClient, long cnpj)
+    public static async Task<List<ControladoraResponse>> GetExportJsonAsync(this IteraAuthService iteraAuthService, long cnpj)
     {
-        var endpoints = GetEndPoints();
-
-        var url = string.Format(endpoints.ExportJson, cnpj);
+        using var httpClient = await iteraAuthService.CreateAuthorizedClientAsync();
+        
+        var url = string.Format(iteraAuthService.EndPoints.ExportJson, cnpj);
 
         var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
         response.EnsureSuccessStatusCode();
 
         var jsonNode = JsonNode.Parse(await response.Content.ReadAsStringAsync());
 
-        var listasContainer = (JsonObject)jsonNode;
+        var listasContainer = (JsonObject)jsonNode!;
 
         var listaControladora = new List<ControladoraResponse>();
 
@@ -38,24 +38,23 @@ public static class UsingEndPoins
         {
             if (prop.Value is JsonArray jsonArray )
             {
-                listaControladora.AddRange(JsonSerializer.Deserialize<List<ControladoraResponse>>(jsonArray.ToJsonString()));
+                listaControladora.AddRange(JsonSerializer.Deserialize<List<ControladoraResponse>>(jsonArray.ToJsonString())!);
             }
         }
         
         return listaControladora;
     }
-
-
-    private static EndPoints GetEndPoints()
+    
+    public static async Task<string> GetIteraDeParaAsync(this IteraAuthService iteraAuthService, Guid id)
     {
-        var configuration = new ConfigurationBuilder()
-               .SetBasePath(Directory.GetCurrentDirectory())
-               .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-               .Build();
+        using var httpClient = await iteraAuthService.CreateAuthorizedClientAsync();
 
-        var endpoints = new EndPoints();
-        configuration.GetSection("EndPoints").Bind(endpoints);
+        var url = string.Format(iteraAuthService.EndPoints.IteraDePara, id);
 
-        return endpoints;
+        var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url));
+        response.EnsureSuccessStatusCode();
+
+        //return JsonSerializer.Deserialize<IteraStatusResponse>(await response.Content.ReadAsStringAsync()) ?? new IteraStatusResponse();
+        return await response.Content.ReadAsStringAsync();
     }
 }
