@@ -1,0 +1,190 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\utils\\usingendpoins.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:utils\\usingendpoins.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\models\\endpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:models\\endpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\models\\controladoraresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:models\\controladoraresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\models\\retificationhistoryresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:models\\retificationhistoryresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\models\\iterastatusresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:models\\iterastatusresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\models\\accesstoken.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:models\\accesstoken.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\models\\authconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:models\\authconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\services\\iteraauthservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:services\\iteraauthservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|c:\\users\\daniel.gomes\\source\\repos\\iteraclient\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{4AA45C5A-DEDD-4F09-A67A-0549F6E5E2F8}|IteraClient.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ControladoraResponse.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\ControladoraResponse.cs",
+              "RelativeDocumentMoniker": "Models\\ControladoraResponse.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\ControladoraResponse.cs",
+              "RelativeToolTip": "Models\\ControladoraResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T19:10:19.332Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RetificationHistoryResponse.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\RetificationHistoryResponse.cs",
+              "RelativeDocumentMoniker": "Models\\RetificationHistoryResponse.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\RetificationHistoryResponse.cs",
+              "RelativeToolTip": "Models\\RetificationHistoryResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T18:51:06.269Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "IteraStatusResponse.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\IteraStatusResponse.cs",
+              "RelativeDocumentMoniker": "Models\\IteraStatusResponse.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\IteraStatusResponse.cs",
+              "RelativeToolTip": "Models\\IteraStatusResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T18:43:16.352Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "UsingEndPoins.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Utils\\UsingEndPoins.cs",
+              "RelativeDocumentMoniker": "Utils\\UsingEndPoins.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Utils\\UsingEndPoins.cs",
+              "RelativeToolTip": "Utils\\UsingEndPoins.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAArwCYAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T18:22:45.089Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "WeatherForecastController.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Controllers\\WeatherForecastController.cs",
+              "RelativeDocumentMoniker": "Controllers\\WeatherForecastController.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Controllers\\WeatherForecastController.cs",
+              "RelativeToolTip": "Controllers\\WeatherForecastController.cs",
+              "ViewState": "AgIAADMAAAAAAAAAAAAYwDsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T17:59:27.016Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "EndPoints.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\EndPoints.cs",
+              "RelativeDocumentMoniker": "Models\\EndPoints.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\EndPoints.cs",
+              "RelativeToolTip": "Models\\EndPoints.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T17:36:13.619Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "AccessToken.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\AccessToken.cs",
+              "RelativeDocumentMoniker": "Models\\AccessToken.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\AccessToken.cs",
+              "RelativeToolTip": "Models\\AccessToken.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T16:56:15.822Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AuthConfig.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\AuthConfig.cs",
+              "RelativeDocumentMoniker": "Models\\AuthConfig.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Models\\AuthConfig.cs",
+              "RelativeToolTip": "Models\\AuthConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T16:32:22.549Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "IteraAuthService.cs",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Services\\IteraAuthService.cs",
+              "RelativeDocumentMoniker": "Services\\IteraAuthService.cs",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\Services\\IteraAuthService.cs",
+              "RelativeToolTip": "Services\\IteraAuthService.cs",
+              "ViewState": "AgIAAC4AAAAAAAAAAAAIwEAAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T15:46:41.353Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "C:\\Users\\daniel.gomes\\source\\repos\\IteraClient\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-12-30T15:38:26.553Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
