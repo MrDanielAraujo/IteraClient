@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "lce6fHMcx78F+QJMKv2i8TBMfX/vfr6Ha8letEihH+KeiLFlkCdFnmzG/5MbkGMCndQssL6Twu4pL4beWLuMLw==",
+  "dgSpecHash": "8ReURJsDf4rHDmZkuEzSoe49BSdCHqvNB+jVBJPoJ33aA6+iwxWtNqHyHQgeFFxCm/bnlXU49iwaQZbX3Mvlkw==",
   "success": true,
-  "projectFilePath": "/Users/danielaraujogomes/Projects/IteraClient/IteraClient.csproj",
+  "projectFilePath": "/Users/danielaraujogomes/Downloads/IteraClient 2/IteraClient.csproj",
   "expectedPackageFiles": [
     "/Users/danielaraujogomes/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "/Users/danielaraujogomes/.nuget/packages/microsoft.extensions.caching.abstractions/10.0.1/microsoft.extensions.caching.abstractions.10.0.1.nupkg.sha512",

@@ -1058,11 +1058,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/danielaraujogomes/Projects/IteraClient/IteraClient.csproj",
+      "projectUniqueName": "/Users/danielaraujogomes/Downloads/IteraClient 2/IteraClient.csproj",
       "projectName": "IteraClient",
-      "projectPath": "/Users/danielaraujogomes/Projects/IteraClient/IteraClient.csproj",
+      "projectPath": "/Users/danielaraujogomes/Downloads/IteraClient 2/IteraClient.csproj",
       "packagesPath": "/Users/danielaraujogomes/.nuget/packages/",
-      "outputPath": "/Users/danielaraujogomes/Projects/IteraClient/obj/",
+      "outputPath": "/Users/danielaraujogomes/Downloads/IteraClient 2/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/danielaraujogomes/.nuget/NuGet/NuGet.Config"

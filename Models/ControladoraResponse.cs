@@ -1,36 +1,39 @@
-﻿namespace IteraClient.Models;
+namespace IteraClient.Models;
 
+/// <summary>
+/// Modelo que representa os dados de uma controladora retornados pela API de exportação.
+/// </summary>
 public class ControladoraResponse
 {
-    public string codigo { get; set; }
-    public string tempo { get; set; }
-    public string conf { get; set; }
-    public string data { get; set; }
-    public string data_ano { get; set; }
-    public string termo_total { get; set; }
-    public string valor { get; set; }
-    public string page { get; set; }
-    public string id { get; set; }
-    public string subsection { get; set; }
-    public string tipo { get; set; }
-    public string section { get; set; }
-    public string moeda { get; set; }
-    public string escala { get; set; }
-    public string empresa { get; set; }
-    public string cnpj { get; set; }
-    public string consolidado { get; set; }
-    public string tipo_balanco { get; set; }
-    public string y { get; set; }
-    public string x { get; set; }
-    public string unique_id { get; set; }
-    public string parent { get; set; }
-    public string is_total { get; set; }
-    public string over_threshold_h { get; set; }
-    public string over_threshold_v { get; set; }
-    public string bbox_left { get; set; }
-    public string bbox_top { get; set; }
-    public string bbox_height { get; set; }
-    public string bbox_width { get; set; }
-    public string data_init { get; set; }
-    public string formula { get; set; }
+    public string codigo { get; set; } = string.Empty;
+    public string tempo { get; set; } = string.Empty;
+    public string conf { get; set; } = string.Empty;
+    public string data { get; set; } = string.Empty;
+    public string data_ano { get; set; } = string.Empty;
+    public string termo_total { get; set; } = string.Empty;
+    public string valor { get; set; } = string.Empty;
+    public string page { get; set; } = string.Empty;
+    public string id { get; set; } = string.Empty;
+    public string subsection { get; set; } = string.Empty;
+    public string tipo { get; set; } = string.Empty;
+    public string section { get; set; } = string.Empty;
+    public string moeda { get; set; } = string.Empty;
+    public string escala { get; set; } = string.Empty;
+    public string empresa { get; set; } = string.Empty;
+    public string cnpj { get; set; } = string.Empty;
+    public string consolidado { get; set; } = string.Empty;
+    public string tipo_balanco { get; set; } = string.Empty;
+    public string y { get; set; } = string.Empty;
+    public string x { get; set; } = string.Empty;
+    public string unique_id { get; set; } = string.Empty;
+    public string parent { get; set; } = string.Empty;
+    public string is_total { get; set; } = string.Empty;
+    public string over_threshold_h { get; set; } = string.Empty;
+    public string over_threshold_v { get; set; } = string.Empty;
+    public string bbox_left { get; set; } = string.Empty;
+    public string bbox_top { get; set; } = string.Empty;
+    public string bbox_height { get; set; } = string.Empty;
+    public string bbox_width { get; set; } = string.Empty;
+    public string data_init { get; set; } = string.Empty;
+    public string formula { get; set; } = string.Empty;
 }
