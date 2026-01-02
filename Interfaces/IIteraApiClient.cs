@@ -44,8 +44,8 @@ public interface IIteraApiClient
     /// <returns>Resposta do upload contendo informações do documento criado</returns>
     Task<UploadDocumentResponse> UploadDocumentAsync(
         IFormFile file,
-        string? source,
-        string? description,
-        string? cnpj,
+        string source,
+        string description,
+        string cnpj,
         CancellationToken cancellationToken = default);
 }

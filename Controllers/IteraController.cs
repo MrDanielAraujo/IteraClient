@@ -5,13 +5,19 @@ using Microsoft.AspNetCore.Mvc;
 namespace IteraClient.Controllers;
 
 /// <summary>
-/// Controller responsável pelos endpoints da API Itera.
-/// Segue os princípios SOLID:
-/// - SRP: Apenas gerencia requisições HTTP e delega para serviços
-/// - DIP: Depende de abstrações (interfaces) injetadas via construtor
+/// Controller responsável pelos endpoints diretos da API Itera.
+/// Fornece acesso às funcionalidades básicas de autenticação, consulta de status,
+/// exportação de dados e upload de documentos.
 /// </summary>
+/// <remarks>
+/// Este controller segue os princípios SOLID:
+/// - **SRP**: Apenas gerencia requisições HTTP e delega para serviços
+/// - **DIP**: Depende de abstrações (interfaces) injetadas via construtor
+/// </remarks>
 [ApiController]
 [Route("[controller]")]
+[Produces("application/json")]
+[Tags("Itera - Endpoints Diretos")]
 public class IteraController : ControllerBase
 {
     private readonly ITokenService _tokenService;
@@ -26,10 +32,30 @@ public class IteraController : ControllerBase
     }
 
     /// <summary>
-    /// Obtém um token de acesso válido.
+    /// Obtém um token de acesso válido para autenticação na API Itera.
     /// </summary>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>Token de acesso</returns>
+    /// <remarks>
+    /// Este endpoint retorna um token JWT válido para autenticação nas demais chamadas à API Itera.
+    /// 
+    /// **Características:**
+    /// - O token é automaticamente cacheado para evitar requisições desnecessárias
+    /// - Tokens expirados são renovados automaticamente
+    /// - O token é validado antes de ser retornado
+    /// 
+    /// **Exemplo de uso:**
+    /// ```
+    /// GET /Itera/GetAccessToken
+    /// ```
+    /// 
+    /// **Resposta de sucesso:**
+    /// ```
+    /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    /// ```
+    /// </remarks>
+    /// <param name="cancellationToken">Token para cancelamento da operação</param>
+    /// <returns>Token JWT de acesso</returns>
+    /// <response code="200">Token obtido com sucesso</response>
+    /// <response code="500">Erro interno ao obter o token</response>
     [HttpGet("GetAccessToken")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -40,11 +66,31 @@ public class IteraController : ControllerBase
     }
 
     /// <summary>
-    /// Obtém o status de um documento pelo ID.
+    /// Consulta o status de processamento de um documento na Itera.
     /// </summary>
-    /// <param name="documentId">ID do documento (opcional, usa valor padrão se não informado)</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>Status do documento</returns>
+    /// <remarks>
+    /// Este endpoint permite verificar em qual estágio de processamento um documento se encontra.
+    /// 
+    /// **Status possíveis:**
+    /// - `Pendente`: Documento aguardando processamento
+    /// - `Processando`: Documento em processamento
+    /// - `Concluido`: Processamento finalizado com sucesso
+    /// - `Erro`: Ocorreu um erro no processamento
+    /// 
+    /// **Exemplo de uso:**
+    /// ```
+    /// GET /Itera/GetStatus?documentId=490d3ec0-fe70-4e40-b286-09246f5e6d5d
+    /// ```
+    /// 
+    /// **Quando usar:**
+    /// - Após fazer upload de um documento, use este endpoint para monitorar o progresso
+    /// - Faça polling periódico (ex: a cada 10 segundos) até o status ser "Concluido" ou "Erro"
+    /// </remarks>
+    /// <param name="documentId">ID único do documento na Itera (GUID). Se não informado, usa um valor padrão para testes.</param>
+    /// <param name="cancellationToken">Token para cancelamento da operação</param>
+    /// <returns>Objeto contendo o status atual do documento</returns>
+    /// <response code="200">Status obtido com sucesso</response>
+    /// <response code="500">Erro interno ao consultar o status</response>
     [HttpGet("GetStatus")]
     [ProducesResponseType(typeof(IteraStatusResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -59,11 +105,32 @@ public class IteraController : ControllerBase
     }
 
     /// <summary>
-    /// Exporta dados em JSON pelo CNPJ.
+    /// Exporta os dados extraídos de documentos processados pelo CNPJ.
     /// </summary>
-    /// <param name="cnpj">CNPJ da empresa (opcional, usa valor padrão se não informado)</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>Lista de dados da controladora</returns>
+    /// <remarks>
+    /// Este endpoint retorna todos os dados extraídos dos documentos processados para um determinado CNPJ.
+    /// 
+    /// **Dados retornados incluem:**
+    /// - Informações financeiras (valores, moeda, escala)
+    /// - Dados da empresa (nome, CNPJ)
+    /// - Metadados do documento (página, seção, subseção)
+    /// - Classificações (tipo de balanço, consolidado)
+    /// 
+    /// **Exemplo de uso:**
+    /// ```
+    /// GET /Itera/GetExport?cnpj=34413970000130
+    /// ```
+    /// 
+    /// **Importante:**
+    /// - O CNPJ deve ser informado apenas com números (sem pontos, barras ou traços)
+    /// - Só retorna dados de documentos que já foram processados com sucesso
+    /// - Verifique o status do documento antes de chamar este endpoint
+    /// </remarks>
+    /// <param name="cnpj">CNPJ da empresa (apenas números, 14 dígitos). Se não informado, usa um valor padrão para testes.</param>
+    /// <param name="cancellationToken">Token para cancelamento da operação</param>
+    /// <returns>Lista de dados extraídos dos documentos</returns>
+    /// <response code="200">Dados exportados com sucesso</response>
+    /// <response code="500">Erro interno ao exportar os dados</response>
     [HttpGet("GetExport")]
     [ProducesResponseType(typeof(List<ControladoraResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -78,11 +145,32 @@ public class IteraController : ControllerBase
     }
 
     /// <summary>
-    /// Obtém o mapeamento De-Para pelo ID do documento.
+    /// Obtém o mapeamento De-Para de um documento processado.
     /// </summary>
-    /// <param name="documentId">ID do documento (opcional, usa valor padrão se não informado)</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>Dados do mapeamento De-Para</returns>
+    /// <remarks>
+    /// Este endpoint retorna o mapeamento De-Para que relaciona os dados extraídos
+    /// com as categorias e classificações padrão do sistema.
+    /// 
+    /// **O que é o De-Para:**
+    /// - Mapeia termos encontrados no documento para termos padronizados
+    /// - Permite normalização dos dados extraídos
+    /// - Facilita a integração com outros sistemas
+    /// 
+    /// **Exemplo de uso:**
+    /// ```
+    /// GET /Itera/GetDePara?documentId=490d3ec0-fe70-4e40-b286-09246f5e6d5d
+    /// ```
+    /// 
+    /// **Quando usar:**
+    /// - Após o documento ser processado com sucesso
+    /// - Para entender como os dados foram classificados
+    /// - Para integração com sistemas que usam nomenclatura diferente
+    /// </remarks>
+    /// <param name="documentId">ID único do documento na Itera (GUID). Se não informado, usa um valor padrão para testes.</param>
+    /// <param name="cancellationToken">Token para cancelamento da operação</param>
+    /// <returns>Dados do mapeamento De-Para em formato JSON</returns>
+    /// <response code="200">Mapeamento obtido com sucesso</response>
+    /// <response code="500">Erro interno ao obter o mapeamento</response>
     [HttpGet("GetDePara")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -97,11 +185,43 @@ public class IteraController : ControllerBase
     }
 
     /// <summary>
-    /// Realiza o upload de um documento para a API Itera.
+    /// Realiza o upload de um documento para processamento na API Itera.
     /// </summary>
-    /// <param name="request">Dados do documento a ser enviado (form-data)</param>
-    /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>Resposta do upload contendo informações do documento criado</returns>
+    /// <remarks>
+    /// Este endpoint envia um documento para a Itera processar e extrair informações.
+    /// 
+    /// **Formatos aceitos:**
+    /// - PDF (recomendado)
+    /// - Imagens (PNG, JPG, JPEG)
+    /// 
+    /// **Parâmetros do form-data:**
+    /// | Campo | Tipo | Obrigatório | Descrição |
+    /// |-------|------|-------------|-----------|
+    /// | File | file | Sim | Arquivo do documento |
+    /// | Cnpj | text | Sim | CNPJ da empresa (14 dígitos) |
+    /// | Source | text | Não | Origem/sistema de onde vem o documento |
+    /// | Description | text | Não | Descrição do documento |
+    /// 
+    /// **Exemplo de uso com cURL:**
+    /// ```bash
+    /// curl -X POST "http://localhost:5000/Itera/UploadDocument" \
+    ///   -F "File=@documento.pdf" \
+    ///   -F "Cnpj=34413970000130" \
+    ///   -F "Source=Sistema Interno" \
+    ///   -F "Description=Balanço 2024"
+    /// ```
+    /// 
+    /// **Fluxo após upload:**
+    /// 1. Guarde o `Uid` retornado na resposta
+    /// 2. Use `GET /Itera/GetStatus` para monitorar o processamento
+    /// 3. Quando status for "Concluido", use `GET /Itera/GetExport` para obter os dados
+    /// </remarks>
+    /// <param name="request">Dados do documento em formato multipart/form-data</param>
+    /// <param name="cancellationToken">Token para cancelamento da operação</param>
+    /// <returns>Resposta contendo o ID do documento criado e status inicial</returns>
+    /// <response code="200">Upload realizado com sucesso</response>
+    /// <response code="400">Dados inválidos (arquivo vazio ou CNPJ não informado)</response>
+    /// <response code="500">Erro interno ao realizar o upload</response>
     [HttpPost("UploadDocument")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(UploadDocumentResponse), StatusCodes.Status200OK)]

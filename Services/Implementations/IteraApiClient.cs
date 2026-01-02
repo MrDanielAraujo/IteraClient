@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using IteraClient.Configuration;
 using IteraClient.Interfaces;
 using IteraClient.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace IteraClient.Services.Implementations;
@@ -15,13 +16,18 @@ namespace IteraClient.Services.Implementations;
 /// - OCP: Pode ser estendido através da interface IIteraApiClient
 /// - DIP: Depende de abstrações (IAuthorizedHttpClientFactory, IOptions)
 /// </summary>
-public class IteraApiClient(
-    IAuthorizedHttpClientFactory httpClientFactory,
-    IOptions<IteraSettings> settings)
-    : IIteraApiClient
+public class IteraApiClient : IIteraApiClient
 {
-    private readonly IAuthorizedHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-    private readonly IteraSettings _settings = settings.Value ?? throw new ArgumentNullException(nameof(settings));
+    private readonly IAuthorizedHttpClientFactory _httpClientFactory;
+    private readonly IteraSettings _settings;
+
+    public IteraApiClient(
+        IAuthorizedHttpClientFactory httpClientFactory,
+        IOptions<IteraSettings> settings)
+    {
+        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
+    }
 
     /// <inheritdoc />
     public async Task<IteraStatusResponse> GetStatusAsync(Guid documentId, CancellationToken cancellationToken = default)
@@ -88,9 +94,9 @@ public class IteraApiClient(
     /// <inheritdoc />
     public async Task<UploadDocumentResponse> UploadDocumentAsync(
         IFormFile file,
-        string? source,
-        string? description,
-        string? cnpj,
+        string source,
+        string description,
+        string cnpj,
         CancellationToken cancellationToken = default)
     {
         if (file == null || file.Length == 0)
@@ -108,7 +114,7 @@ public class IteraApiClient(
         memoryStream.Position = 0;
         
         var streamContent = new StreamContent(memoryStream);
-        streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+        streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
         formData.Add(streamContent, "file", file.FileName);
         
         // Adiciona os campos de texto

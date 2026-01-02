@@ -15,15 +15,15 @@ public class UploadDocumentRequest
     /// <summary>
     /// Origem do documento.
     /// </summary>
-    public string? Source { get; set; } = string.Empty;
+    public string Source { get; set; } = string.Empty;
 
     /// <summary>
     /// Descrição do documento.
     /// </summary>
-    public string? Description { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// CNPJ da empresa.
     /// </summary>
-    public string? Cnpj { get; set; } = string.Empty;
+    public string Cnpj { get; set; } = string.Empty;
 }

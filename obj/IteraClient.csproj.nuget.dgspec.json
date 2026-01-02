@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/danielaraujogomes/Downloads/IteraClient 2/IteraClient.csproj": {}
+    "/Users/danielaraujogomes/Downloads/IteraClient 4/IteraClient.csproj": {}
   },
   "projects": {
-    "/Users/danielaraujogomes/Downloads/IteraClient 2/IteraClient.csproj": {
+    "/Users/danielaraujogomes/Downloads/IteraClient 4/IteraClient.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/danielaraujogomes/Downloads/IteraClient 2/IteraClient.csproj",
+        "projectUniqueName": "/Users/danielaraujogomes/Downloads/IteraClient 4/IteraClient.csproj",
         "projectName": "IteraClient",
-        "projectPath": "/Users/danielaraujogomes/Downloads/IteraClient 2/IteraClient.csproj",
+        "projectPath": "/Users/danielaraujogomes/Downloads/IteraClient 4/IteraClient.csproj",
         "packagesPath": "/Users/danielaraujogomes/.nuget/packages/",
-        "outputPath": "/Users/danielaraujogomes/Downloads/IteraClient 2/obj/",
+        "outputPath": "/Users/danielaraujogomes/Downloads/IteraClient 4/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/danielaraujogomes/.nuget/NuGet/NuGet.Config"
@@ -38,6 +38,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
+            "Microsoft.EntityFrameworkCore.InMemory": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
             "Microsoft.Extensions.Caching.Memory": {
               "target": "Package",
               "version": "[10.0.1, )"

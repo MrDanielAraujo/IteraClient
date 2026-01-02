@@ -1,0 +1,1536 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>IteraClient</name>
+    </assembly>
+    <members>
+        <member name="T:IteraClient.Configuration.IteraSettings">
+            <summary>
+            Classe de configuração que agrupa todas as configurações do Itera.
+            Utiliza o Options Pattern do .NET para configuração tipada.
+            </summary>
+        </member>
+        <member name="F:IteraClient.Configuration.IteraSettings.SectionName">
+            <summary>
+            Nome da seção no appsettings.json
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.IteraSettings.Auth">
+            <summary>
+            Configurações de autenticação
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.IteraSettings.Endpoints">
+            <summary>
+            Configurações de endpoints da API
+            </summary>
+        </member>
+        <member name="T:IteraClient.Configuration.AuthSettings">
+            <summary>
+            Configurações de autenticação para a API Itera.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.AuthSettings.Username">
+            <summary>
+            Nome de usuário para autenticação
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.AuthSettings.Password">
+            <summary>
+            Senha para autenticação
+            </summary>
+        </member>
+        <member name="T:IteraClient.Configuration.EndpointSettings">
+            <summary>
+            Configurações de endpoints da API Itera.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.EndpointSettings.Auth">
+            <summary>
+            URL do endpoint de autenticação
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.EndpointSettings.UploadDoc">
+            <summary>
+            URL do endpoint de upload de documentos
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.EndpointSettings.Status">
+            <summary>
+            URL do endpoint de status do documento (com placeholder {0} para o ID)
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.EndpointSettings.ExportJson">
+            <summary>
+            URL do endpoint de exportação JSON (com placeholder {0} para o CNPJ)
+            </summary>
+        </member>
+        <member name="P:IteraClient.Configuration.EndpointSettings.DePara">
+            <summary>
+            URL do endpoint De-Para (com placeholder {0} para o ID)
+            </summary>
+        </member>
+        <member name="T:IteraClient.Configuration.ServiceCollectionExtensions">
+            <summary>
+            Extensões para configuração de serviços no container de DI.
+            Centraliza o registro de todos os serviços da aplicação.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Configuration.ServiceCollectionExtensions.AddIteraServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adiciona todos os serviços do Itera ao container de injeção de dependência.
+            </summary>
+            <param name="services">Coleção de serviços</param>
+            <param name="configuration">Configuração da aplicação</param>
+            <returns>Coleção de serviços configurada</returns>
+        </member>
+        <member name="M:IteraClient.Configuration.ServiceCollectionExtensions.AddIteraDatabase(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adiciona o contexto do banco de dados e repositórios.
+            Configurado para usar banco em memória, mas preparado para migração para PostgreSQL.
+            </summary>
+            <param name="services">Coleção de serviços</param>
+            <param name="configuration">Configuração da aplicação</param>
+            <returns>Coleção de serviços configurada</returns>
+        </member>
+        <member name="T:IteraClient.Controllers.DocumentProcessingController">
+            <summary>
+            Controller responsável pelo gerenciamento e processamento em lote de documentos.
+            Permite armazenar documentos no banco de dados local e processá-los em lote na API Itera.
+            </summary>
+            <remarks>
+            Este controller implementa o fluxo completo de processamento:
+            1. Armazenamento de documentos (Base64) no banco de dados
+            2. Envio em lote para a API Itera
+            3. Monitoramento automático de status
+            4. Obtenção e armazenamento dos resultados exportados
+            
+            **Banco de Dados:**
+            Atualmente utiliza banco em memória (InMemory), preparado para migração para PostgreSQL.
+            </remarks>
+        </member>
+        <member name="M:IteraClient.Controllers.DocumentProcessingController.#ctor(IteraClient.Interfaces.IDocumentProcessingService,IteraClient.Interfaces.IDocumentRepository,IteraClient.Interfaces.IDocumentExportResultRepository)">
+            <summary>
+            Controller responsável pelo gerenciamento e processamento em lote de documentos.
+            Permite armazenar documentos no banco de dados local e processá-los em lote na API Itera.
+            </summary>
+            <remarks>
+            Este controller implementa o fluxo completo de processamento:
+            1. Armazenamento de documentos (Base64) no banco de dados
+            2. Envio em lote para a API Itera
+            3. Monitoramento automático de status
+            4. Obtenção e armazenamento dos resultados exportados
+            
+            **Banco de Dados:**
+            Atualmente utiliza banco em memória (InMemory), preparado para migração para PostgreSQL.
+            </remarks>
+        </member>
+        <member name="M:IteraClient.Controllers.DocumentProcessingController.ProcessBatch(IteraClient.Models.BatchProcessingRequest,System.Threading.CancellationToken)">
+            <summary>
+            Processa múltiplos documentos em lote enviando para a API Itera.
+            </summary>
+            <remarks>
+            Este é o endpoint principal para processamento em lote. Ele executa o seguinte fluxo:
+            
+            **Fluxo de Processamento:**
+            1. Busca os documentos pelos IDs no banco de dados local
+            2. Converte o conteúdo Base64 para arquivo
+            3. Envia cada documento para a API Itera via upload
+            4. Se `WaitForCompletion` for true, monitora o status até conclusão
+            5. Quando concluído, obtém os dados exportados e salva no banco
+            
+            **Configurações disponíveis:**
+            | Campo | Tipo | Padrão | Descrição |
+            |-------|------|--------|-----------|
+            | DocumentIds | array | - | Lista de GUIDs dos documentos a processar |
+            | WaitForCompletion | bool | true | Se deve aguardar a conclusão do processamento |
+            | TimeoutSeconds | int | 300 | Tempo máximo de espera (5 minutos) |
+            | PollingIntervalSeconds | int | 10 | Intervalo entre verificações de status |
+            
+            **Exemplo de requisição:**
+            ```json
+            {
+              "documentIds": [
+                "9d2fa731-837f-460c-9357-9417b9ae280c",
+                "11be1db9-1c28-4253-aece-b9727a5d3288"
+              ],
+              "waitForCompletion": true,
+              "timeoutSeconds": 300,
+              "pollingIntervalSeconds": 10
+            }
+            ```
+            
+            **Resposta de sucesso:**
+            ```json
+            {
+              "totalDocuments": 2,
+              "successCount": 2,
+              "errorCount": 0,
+              "processingCount": 0,
+              "documentStatuses": [...],
+              "isSuccess": true,
+              "message": "Processamento concluído: 2 sucesso, 0 erro"
+            }
+            ```
+            
+            **Importante:**
+            - Os documentos devem ser previamente cadastrados via `POST /DocumentProcessing/Documents`
+            - O processamento pode demorar dependendo do tamanho e quantidade de documentos
+            - Use `WaitForCompletion: false` para processamento assíncrono
+            </remarks>
+            <param name="request">Configurações do processamento em lote</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Resultado detalhado do processamento de cada documento</returns>
+            <response code="200">Processamento iniciado/concluído com sucesso</response>
+            <response code="400">Lista de IDs vazia ou inválida</response>
+            <response code="500">Erro interno durante o processamento</response>
+        </member>
+        <member name="M:IteraClient.Controllers.DocumentProcessingController.GetStatus(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Verifica o status de processamento de um documento específico na Itera.
+            </summary>
+            <remarks>
+            Use este endpoint para verificar o progresso de um documento individual.
+            
+            **Status possíveis:**
+            | Status | Descrição |
+            |--------|-----------|
+            | NotFound | Documento não existe no banco local |
+            | NotUploaded | Documento ainda não foi enviado para Itera |
+            | Uploaded | Documento enviado, aguardando processamento |
+            | Processando | Documento em processamento na Itera |
+            | Concluido | Processamento finalizado com sucesso |
+            | Erro | Ocorreu erro no processamento |
+            
+            **Exemplo de uso:**
+            ```
+            GET /DocumentProcessing/Status/9d2fa731-837f-460c-9357-9417b9ae280c
+            ```
+            
+            **Resposta de sucesso:**
+            ```json
+            {
+              "documentId": "9d2fa731-837f-460c-9357-9417b9ae280c",
+              "iteraDocumentId": "abc123...",
+              "fileName": "documento.pdf",
+              "status": "Concluido",
+              "isSuccess": true,
+              "isProcessing": false,
+              "exportedResultsCount": 150
+            }
+            ```
+            
+            **Importante:**
+            - Este endpoint também atualiza o status no banco de dados local
+            - Se o status for "Concluido", os dados exportados são automaticamente salvos
+            </remarks>
+            <param name="documentId">ID único do documento no banco local (GUID)</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Status atual detalhado do documento</returns>
+            <response code="200">Status obtido com sucesso</response>
+            <response code="404">Documento não encontrado</response>
+        </member>
+        <member name="M:IteraClient.Controllers.DocumentProcessingController.GetExportResults(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Obtém os resultados exportados de um documento processado com sucesso.
+            </summary>
+            <remarks>
+            Retorna os dados extraídos pela Itera que foram salvos no banco de dados local.
+            
+            **Pré-requisitos:**
+            - O documento deve ter sido processado com sucesso (status "Concluido")
+            - Os dados são salvos automaticamente quando o processamento é concluído
+            
+            **Exemplo de uso:**
+            ```
+            GET /DocumentProcessing/Export/9d2fa731-837f-460c-9357-9417b9ae280c
+            ```
+            
+            **Resposta de sucesso:**
+            ```json
+            {
+              "documentId": "9d2fa731-837f-460c-9357-9417b9ae280c",
+              "cnpj": "34413970000130",
+              "isSuccess": true,
+              "recordsCount": 150,
+              "data": [
+                {
+                  "codigo": "1.01",
+                  "valor": "1000000.00",
+                  "empresa": "Empresa XYZ",
+                  ...
+                }
+              ]
+            }
+            ```
+            
+            **Quando usar:**
+            - Após verificar que o status do documento é "Concluido"
+            - Para obter os dados extraídos sem precisar chamar a API Itera novamente
+            </remarks>
+            <param name="documentId">ID único do documento no banco local (GUID)</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Dados exportados do documento</returns>
+            <response code="200">Dados obtidos com sucesso</response>
+            <response code="404">Documento não encontrado ou sem dados exportados</response>
+        </member>
+        <member name="M:IteraClient.Controllers.DocumentProcessingController.GetAllDocuments(System.Threading.CancellationToken)">
+            <summary>
+            Lista todos os documentos armazenados no banco de dados.
+            </summary>
+            <remarks>
+            Retorna uma lista resumida de todos os documentos cadastrados, incluindo seu status de processamento.
+            
+            **Campos retornados:**
+            | Campo | Descrição |
+            |-------|-----------|
+            | Id | ID único do documento |
+            | FileName | Nome do arquivo |
+            | Cnpj | CNPJ associado |
+            | Source | Origem do documento |
+            | Description | Descrição |
+            | IteraDocumentId | ID na Itera (após upload) |
+            | IteraStatus | Status na Itera |
+            | IsProcessed | Se foi processado com sucesso |
+            | CreatedAt | Data de criação |
+            | UpdatedAt | Data da última atualização |
+            | ErrorMessage | Mensagem de erro (se houver) |
+            | ContentBase64Length | Tamanho do conteúdo em caracteres |
+            
+            **Exemplo de uso:**
+            ```
+            GET /DocumentProcessing/Documents
+            ```
+            
+            **Nota:** O conteúdo Base64 não é retornado para economizar banda.
+            Use `GET /DocumentProcessing/Documents/{id}` para detalhes completos.
+            </remarks>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Lista de documentos com informações resumidas</returns>
+            <response code="200">Lista obtida com sucesso</response>
+        </member>
+        <member name="M:IteraClient.Controllers.DocumentProcessingController.AddDocument(IteraClient.Models.AddDocumentRequest,System.Threading.CancellationToken)">
+            <summary>
+            Adiciona um novo documento ao banco de dados para processamento posterior.
+            </summary>
+            <remarks>
+            Armazena um documento no banco de dados local. O documento pode ser processado
+            posteriormente usando o endpoint `POST /DocumentProcessing/ProcessBatch`.
+            
+            **Campos obrigatórios:**
+            | Campo | Tipo | Descrição |
+            |-------|------|-----------|
+            | FileName | string | Nome do arquivo (ex: "balanco2024.pdf") |
+            | ContentBase64 | string | Conteúdo do arquivo codificado em Base64 |
+            | Cnpj | string | CNPJ da empresa (14 dígitos, apenas números) |
+            
+            **Campos opcionais:**
+            | Campo | Tipo | Padrão | Descrição |
+            |-------|------|--------|-----------|
+            | ContentType | string | application/pdf | Tipo MIME do arquivo |
+            | Source | string | "" | Sistema/origem do documento |
+            | Description | string | "" | Descrição do documento |
+            
+            **Exemplo de requisição:**
+            ```json
+            {
+              "fileName": "balanco-2024.pdf",
+              "contentBase64": "JVBERi0xLjQK...",
+              "contentType": "application/pdf",
+              "cnpj": "34413970000130",
+              "source": "Sistema Contábil",
+              "description": "Balanço Patrimonial 2024"
+            }
+            ```
+            
+            **Como converter arquivo para Base64:**
+            ```csharp
+            var bytes = File.ReadAllBytes("documento.pdf");
+            var base64 = Convert.ToBase64String(bytes);
+            ```
+            
+            **Resposta de sucesso (201 Created):**
+            ```json
+            {
+              "id": "9d2fa731-837f-460c-9357-9417b9ae280c",
+              "fileName": "balanco-2024.pdf",
+              "cnpj": "34413970000130",
+              "source": "Sistema Contábil",
+              "description": "Balanço Patrimonial 2024",
+              "createdAt": "2024-01-15T10:30:00Z"
+            }
+            ```
+            </remarks>
+            <param name="request">Dados do documento a ser armazenado</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Documento criado com seu ID gerado</returns>
+            <response code="201">Documento criado com sucesso</response>
+            <response code="400">Dados inválidos ou campos obrigatórios faltando</response>
+        </member>
+        <member name="M:IteraClient.Controllers.DocumentProcessingController.GetDocument(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Obtém os detalhes de um documento específico pelo ID.
+            </summary>
+            <remarks>
+            Retorna informações detalhadas de um documento, exceto o conteúdo Base64
+            (para economizar banda).
+            
+            **Exemplo de uso:**
+            ```
+            GET /DocumentProcessing/Documents/9d2fa731-837f-460c-9357-9417b9ae280c
+            ```
+            
+            **Resposta de sucesso:**
+            ```json
+            {
+              "id": "9d2fa731-837f-460c-9357-9417b9ae280c",
+              "fileName": "balanco-2024.pdf",
+              "cnpj": "34413970000130",
+              "source": "Sistema Contábil",
+              "description": "Balanço Patrimonial 2024",
+              "iteraDocumentId": "abc123...",
+              "iteraStatus": "Concluido",
+              "isProcessed": true,
+              "createdAt": "2024-01-15T10:30:00Z",
+              "updatedAt": "2024-01-15T10:35:00Z",
+              "errorMessage": null,
+              "contentBase64Length": 125000
+            }
+            ```
+            </remarks>
+            <param name="id">ID único do documento (GUID)</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Detalhes do documento</returns>
+            <response code="200">Documento encontrado</response>
+            <response code="404">Documento não encontrado</response>
+        </member>
+        <member name="M:IteraClient.Controllers.DocumentProcessingController.AddDocumentsBatch(System.Collections.Generic.List{IteraClient.Models.AddDocumentRequest},System.Threading.CancellationToken)">
+            <summary>
+            Adiciona múltiplos documentos ao banco de dados em uma única requisição.
+            </summary>
+            <remarks>
+            Permite cadastrar vários documentos de uma vez, ideal para importação em massa.
+            
+            **Exemplo de requisição:**
+            ```json
+            [
+              {
+                "fileName": "balanco-2024-q1.pdf",
+                "contentBase64": "JVBERi0xLjQK...",
+                "cnpj": "34413970000130",
+                "source": "Sistema Contábil",
+                "description": "Balanço Q1 2024"
+              },
+              {
+                "fileName": "balanco-2024-q2.pdf",
+                "contentBase64": "JVBERi0xLjQK...",
+                "cnpj": "34413970000130",
+                "source": "Sistema Contábil",
+                "description": "Balanço Q2 2024"
+              }
+            ]
+            ```
+            
+            **Resposta de sucesso (201 Created):**
+            ```json
+            {
+              "created": [
+                { "id": "9d2fa731-...", "fileName": "balanco-2024-q1.pdf", "cnpj": "34413970000130" },
+                { "id": "11be1db9-...", "fileName": "balanco-2024-q2.pdf", "cnpj": "34413970000130" }
+              ],
+              "errors": []
+            }
+            ```
+            
+            **Tratamento de erros:**
+            - Documentos válidos são criados mesmo se alguns falharem
+            - Erros de validação são retornados no array `errors`
+            - Se todos falharem, retorna 400 Bad Request
+            </remarks>
+            <param name="requests">Lista de documentos a serem criados</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Lista de documentos criados e eventuais erros</returns>
+            <response code="201">Documentos criados (pode conter erros parciais)</response>
+            <response code="400">Todos os documentos falharam na validação</response>
+        </member>
+        <member name="T:IteraClient.Controllers.IteraController">
+            <summary>
+            Controller responsável pelos endpoints diretos da API Itera.
+            Fornece acesso às funcionalidades básicas de autenticação, consulta de status,
+            exportação de dados e upload de documentos.
+            </summary>
+            <remarks>
+            Este controller segue os princípios SOLID:
+            - **SRP**: Apenas gerencia requisições HTTP e delega para serviços
+            - **DIP**: Depende de abstrações (interfaces) injetadas via construtor
+            </remarks>
+        </member>
+        <member name="M:IteraClient.Controllers.IteraController.GetAccessToken(System.Threading.CancellationToken)">
+            <summary>
+            Obtém um token de acesso válido para autenticação na API Itera.
+            </summary>
+            <remarks>
+            Este endpoint retorna um token JWT válido para autenticação nas demais chamadas à API Itera.
+            
+            **Características:**
+            - O token é automaticamente cacheado para evitar requisições desnecessárias
+            - Tokens expirados são renovados automaticamente
+            - O token é validado antes de ser retornado
+            
+            **Exemplo de uso:**
+            ```
+            GET /Itera/GetAccessToken
+            ```
+            
+            **Resposta de sucesso:**
+            ```
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            ```
+            </remarks>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Token JWT de acesso</returns>
+            <response code="200">Token obtido com sucesso</response>
+            <response code="500">Erro interno ao obter o token</response>
+        </member>
+        <member name="M:IteraClient.Controllers.IteraController.GetStatus(System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Consulta o status de processamento de um documento na Itera.
+            </summary>
+            <remarks>
+            Este endpoint permite verificar em qual estágio de processamento um documento se encontra.
+            
+            **Status possíveis:**
+            - `Pendente`: Documento aguardando processamento
+            - `Processando`: Documento em processamento
+            - `Concluido`: Processamento finalizado com sucesso
+            - `Erro`: Ocorreu um erro no processamento
+            
+            **Exemplo de uso:**
+            ```
+            GET /Itera/GetStatus?documentId=490d3ec0-fe70-4e40-b286-09246f5e6d5d
+            ```
+            
+            **Quando usar:**
+            - Após fazer upload de um documento, use este endpoint para monitorar o progresso
+            - Faça polling periódico (ex: a cada 10 segundos) até o status ser "Concluido" ou "Erro"
+            </remarks>
+            <param name="documentId">ID único do documento na Itera (GUID). Se não informado, usa um valor padrão para testes.</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Objeto contendo o status atual do documento</returns>
+            <response code="200">Status obtido com sucesso</response>
+            <response code="500">Erro interno ao consultar o status</response>
+        </member>
+        <member name="M:IteraClient.Controllers.IteraController.GetExport(System.Nullable{System.Int64},System.Threading.CancellationToken)">
+            <summary>
+            Exporta os dados extraídos de documentos processados pelo CNPJ.
+            </summary>
+            <remarks>
+            Este endpoint retorna todos os dados extraídos dos documentos processados para um determinado CNPJ.
+            
+            **Dados retornados incluem:**
+            - Informações financeiras (valores, moeda, escala)
+            - Dados da empresa (nome, CNPJ)
+            - Metadados do documento (página, seção, subseção)
+            - Classificações (tipo de balanço, consolidado)
+            
+            **Exemplo de uso:**
+            ```
+            GET /Itera/GetExport?cnpj=34413970000130
+            ```
+            
+            **Importante:**
+            - O CNPJ deve ser informado apenas com números (sem pontos, barras ou traços)
+            - Só retorna dados de documentos que já foram processados com sucesso
+            - Verifique o status do documento antes de chamar este endpoint
+            </remarks>
+            <param name="cnpj">CNPJ da empresa (apenas números, 14 dígitos). Se não informado, usa um valor padrão para testes.</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Lista de dados extraídos dos documentos</returns>
+            <response code="200">Dados exportados com sucesso</response>
+            <response code="500">Erro interno ao exportar os dados</response>
+        </member>
+        <member name="M:IteraClient.Controllers.IteraController.GetDePara(System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Obtém o mapeamento De-Para de um documento processado.
+            </summary>
+            <remarks>
+            Este endpoint retorna o mapeamento De-Para que relaciona os dados extraídos
+            com as categorias e classificações padrão do sistema.
+            
+            **O que é o De-Para:**
+            - Mapeia termos encontrados no documento para termos padronizados
+            - Permite normalização dos dados extraídos
+            - Facilita a integração com outros sistemas
+            
+            **Exemplo de uso:**
+            ```
+            GET /Itera/GetDePara?documentId=490d3ec0-fe70-4e40-b286-09246f5e6d5d
+            ```
+            
+            **Quando usar:**
+            - Após o documento ser processado com sucesso
+            - Para entender como os dados foram classificados
+            - Para integração com sistemas que usam nomenclatura diferente
+            </remarks>
+            <param name="documentId">ID único do documento na Itera (GUID). Se não informado, usa um valor padrão para testes.</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Dados do mapeamento De-Para em formato JSON</returns>
+            <response code="200">Mapeamento obtido com sucesso</response>
+            <response code="500">Erro interno ao obter o mapeamento</response>
+        </member>
+        <member name="M:IteraClient.Controllers.IteraController.UploadDocument(IteraClient.Models.UploadDocumentRequest,System.Threading.CancellationToken)">
+            <summary>
+            Realiza o upload de um documento para processamento na API Itera.
+            </summary>
+            <remarks>
+            Este endpoint envia um documento para a Itera processar e extrair informações.
+            
+            **Formatos aceitos:**
+            - PDF (recomendado)
+            - Imagens (PNG, JPG, JPEG)
+            
+            **Parâmetros do form-data:**
+            | Campo | Tipo | Obrigatório | Descrição |
+            |-------|------|-------------|-----------|
+            | File | file | Sim | Arquivo do documento |
+            | Cnpj | text | Sim | CNPJ da empresa (14 dígitos) |
+            | Source | text | Não | Origem/sistema de onde vem o documento |
+            | Description | text | Não | Descrição do documento |
+            
+            **Exemplo de uso com cURL:**
+            ```bash
+            curl -X POST "http://localhost:5000/Itera/UploadDocument" \
+              -F "File=@documento.pdf" \
+              -F "Cnpj=34413970000130" \
+              -F "Source=Sistema Interno" \
+              -F "Description=Balanço 2024"
+            ```
+            
+            **Fluxo após upload:**
+            1. Guarde o `Uid` retornado na resposta
+            2. Use `GET /Itera/GetStatus` para monitorar o processamento
+            3. Quando status for "Concluido", use `GET /Itera/GetExport` para obter os dados
+            </remarks>
+            <param name="request">Dados do documento em formato multipart/form-data</param>
+            <param name="cancellationToken">Token para cancelamento da operação</param>
+            <returns>Resposta contendo o ID do documento criado e status inicial</returns>
+            <response code="200">Upload realizado com sucesso</response>
+            <response code="400">Dados inválidos (arquivo vazio ou CNPJ não informado)</response>
+            <response code="500">Erro interno ao realizar o upload</response>
+        </member>
+        <member name="T:IteraClient.Data.Entities.Document">
+            <summary>
+            Entidade que representa um documento armazenado no banco de dados.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.Id">
+            <summary>
+            Identificador único do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.FileName">
+            <summary>
+            Nome do arquivo.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.ContentBase64">
+            <summary>
+            Conteúdo do arquivo em Base64.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.ContentType">
+            <summary>
+            Tipo MIME do arquivo.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.Cnpj">
+            <summary>
+            CNPJ associado ao documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.Source">
+            <summary>
+            Origem do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.Description">
+            <summary>
+            Descrição do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.IteraDocumentId">
+            <summary>
+            ID retornado pela Itera após o upload.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.IteraStatus">
+            <summary>
+            Status do processamento na Itera.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.IsProcessed">
+            <summary>
+            Indica se o documento foi processado com sucesso.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.CreatedAt">
+            <summary>
+            Data de criação do registro.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.UpdatedAt">
+            <summary>
+            Data da última atualização.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.Document.ErrorMessage">
+            <summary>
+            Mensagem de erro, se houver.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Data.Entities.DocumentExportResult">
+            <summary>
+            Entidade que representa os resultados exportados da Itera.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Id">
+            <summary>
+            Identificador único do registro.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.DocumentId">
+            <summary>
+            ID do documento relacionado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Document">
+            <summary>
+            Documento relacionado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Codigo">
+            <summary>
+            Código do item.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Tempo">
+            <summary>
+            Tempo de processamento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Conf">
+            <summary>
+            Confiança do resultado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Data">
+            <summary>
+            Data do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.DataAno">
+            <summary>
+            Ano da data.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.TermoTotal">
+            <summary>
+            Termo total.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Valor">
+            <summary>
+            Valor do item.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Page">
+            <summary>
+            Página onde foi encontrado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.ItemId">
+            <summary>
+            ID do item na Itera.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Subsection">
+            <summary>
+            Subseção do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Tipo">
+            <summary>
+            Tipo do item.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Section">
+            <summary>
+            Seção do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Moeda">
+            <summary>
+            Moeda utilizada.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Escala">
+            <summary>
+            Escala dos valores.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Empresa">
+            <summary>
+            Empresa relacionada.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Cnpj">
+            <summary>
+            CNPJ da empresa.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Consolidado">
+            <summary>
+            Indica se é consolidado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.TipoBalanco">
+            <summary>
+            Tipo de balanço.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Y">
+            <summary>
+            Coordenada Y.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.X">
+            <summary>
+            Coordenada X.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.UniqueId">
+            <summary>
+            ID único do item.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.Parent">
+            <summary>
+            ID do item pai.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.IsTotal">
+            <summary>
+            Indica se é total.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.Entities.DocumentExportResult.CreatedAt">
+            <summary>
+            Data de criação do registro.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Data.IteraDbContext">
+            <summary>
+            Contexto do banco de dados da aplicação.
+            Configurado para usar banco em memória, mas preparado para migração para PostgreSQL.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.IteraDbContext.Documents">
+            <summary>
+            Documentos armazenados no sistema.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Data.IteraDbContext.DocumentExportResults">
+            <summary>
+            Resultados exportados da Itera.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Data.Repositories.Implementations.DocumentExportResultRepository">
+            <summary>
+            Implementação do repositório de resultados de exportação.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentExportResultRepository.GetByDocumentIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentExportResultRepository.GetByCnpjAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentExportResultRepository.DeleteByDocumentIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentExportResultRepository.GetByIdsAsync(System.Collections.Generic.IEnumerable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:IteraClient.Data.Repositories.Implementations.DocumentRepository">
+            <summary>
+            Implementação do repositório de documentos.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentRepository.GetUnprocessedDocumentsAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentRepository.GetByCnpjAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentRepository.GetByIteraIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentRepository.UpdateIteraStatusAsync(System.Guid,System.Nullable{System.Guid},System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentRepository.MarkAsProcessedAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentRepository.MarkAsErrorAsync(System.Guid,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.DocumentRepository.GetByIdsAsync(System.Collections.Generic.IEnumerable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:IteraClient.Data.Repositories.Implementations.Repository`1">
+            <summary>
+            Implementação genérica do padrão Repository.
+            Fornece operações CRUD básicas para qualquer entidade.
+            </summary>
+            <typeparam name="T">Tipo da entidade</typeparam>
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.Repository`1.GetByIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.Repository`1.GetAllAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.Repository`1.FindAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.Repository`1.AddAsync(`0,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.Repository`1.AddRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.Repository`1.UpdateAsync(`0,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.Repository`1.DeleteAsync(`0,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Data.Repositories.Implementations.Repository`1.GetByIdsAsync(System.Collections.Generic.IEnumerable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:IteraClient.Interfaces.IAuthorizedHttpClientFactory">
+            <summary>
+            Interface responsável pela criação de HttpClients autorizados.
+            Segue o princípio de Single Responsibility (SRP) - apenas cria clientes HTTP configurados.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Interfaces.IAuthorizedHttpClientFactory.CreateAuthorizedClientAsync(System.Threading.CancellationToken)">
+            <summary>
+            Cria um HttpClient configurado com o token de autorização Bearer.
+            </summary>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>HttpClient configurado com Bearer token</returns>
+        </member>
+        <member name="T:IteraClient.Interfaces.IDocumentExportResultRepository">
+            <summary>
+            Interface específica para operações com resultados de exportação.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentExportResultRepository.GetByDocumentIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Obtém resultados por ID do documento.
+            </summary>
+            <param name="documentId">ID do documento</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Lista de resultados do documento</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentExportResultRepository.GetByCnpjAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Obtém resultados por CNPJ.
+            </summary>
+            <param name="cnpj">CNPJ da empresa</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Lista de resultados do CNPJ</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentExportResultRepository.DeleteByDocumentIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Remove todos os resultados de um documento.
+            </summary>
+            <param name="documentId">ID do documento</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="T:IteraClient.Interfaces.IDocumentProcessingService">
+            <summary>
+            Interface para o serviço de processamento de documentos em lote.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentProcessingService.ProcessDocumentsAsync(System.Collections.Generic.IEnumerable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Processa múltiplos documentos: upload para Itera, monitoramento de status e gravação de resultados.
+            </summary>
+            <param name="documentIds">Lista de IDs dos documentos a processar</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Resultado do processamento em lote</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentProcessingService.CheckAndUpdateStatusAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Verifica o status de um documento na Itera e atualiza o banco.
+            </summary>
+            <param name="documentId">ID do documento local</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Status atual do documento</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentProcessingService.GetExportResultsAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Obtém os resultados exportados de um documento processado.
+            </summary>
+            <param name="documentId">ID do documento local</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Resultado da exportação</returns>
+        </member>
+        <member name="T:IteraClient.Interfaces.IDocumentRepository">
+            <summary>
+            Interface específica para operações com documentos.
+            Estende IRepository com métodos específicos para Document.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentRepository.GetUnprocessedDocumentsAsync(System.Threading.CancellationToken)">
+            <summary>
+            Obtém documentos não processados.
+            </summary>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Lista de documentos não processados</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentRepository.GetByCnpjAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Obtém documentos por CNPJ.
+            </summary>
+            <param name="cnpj">CNPJ da empresa</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Lista de documentos do CNPJ</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentRepository.GetByIteraIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Obtém documento pelo ID da Itera.
+            </summary>
+            <param name="iteraDocumentId">ID do documento na Itera</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Documento encontrado ou null</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentRepository.UpdateIteraStatusAsync(System.Guid,System.Nullable{System.Guid},System.String,System.Threading.CancellationToken)">
+            <summary>
+            Atualiza o status do documento na Itera.
+            </summary>
+            <param name="documentId">ID do documento</param>
+            <param name="iteraDocumentId">ID retornado pela Itera</param>
+            <param name="status">Status atual</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentRepository.MarkAsProcessedAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Marca documento como processado.
+            </summary>
+            <param name="documentId">ID do documento</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="M:IteraClient.Interfaces.IDocumentRepository.MarkAsErrorAsync(System.Guid,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Marca documento com erro.
+            </summary>
+            <param name="documentId">ID do documento</param>
+            <param name="errorMessage">Mensagem de erro</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="T:IteraClient.Interfaces.IIteraApiClient">
+            <summary>
+            Interface responsável pela comunicação com a API Itera.
+            Segue o princípio de Interface Segregation (ISP) - interface focada em operações da API.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Interfaces.IIteraApiClient.GetStatusAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Obtém o status de um documento pelo ID.
+            </summary>
+            <param name="documentId">ID do documento</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Status do documento</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IIteraApiClient.GetExportJsonAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Exporta dados em JSON pelo CNPJ.
+            </summary>
+            <param name="cnpj">CNPJ da empresa</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Lista de dados da controladora</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IIteraApiClient.GetDeParaAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Obtém o mapeamento De-Para pelo ID.
+            </summary>
+            <param name="documentId">ID do documento</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Dados do mapeamento De-Para</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IIteraApiClient.UploadDocumentAsync(Microsoft.AspNetCore.Http.IFormFile,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Realiza o upload de um documento para a API Itera.
+            </summary>
+            <param name="file">Arquivo a ser enviado</param>
+            <param name="source">Origem do documento</param>
+            <param name="description">Descrição do documento</param>
+            <param name="cnpj">CNPJ da empresa</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Resposta do upload contendo informações do documento criado</returns>
+        </member>
+        <member name="T:IteraClient.Interfaces.IJwtValidator">
+            <summary>
+            Interface responsável pela validação de tokens JWT.
+            Segue o princípio de Single Responsibility (SRP) - apenas valida tokens JWT.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Interfaces.IJwtValidator.IsTokenExpired(System.String)">
+            <summary>
+            Verifica se um token JWT está expirado.
+            </summary>
+            <param name="token">Token JWT a ser validado</param>
+            <returns>True se o token está expirado, False caso contrário</returns>
+        </member>
+        <member name="T:IteraClient.Interfaces.IRepository`1">
+            <summary>
+            Interface genérica de repositório para operações CRUD.
+            Segue o princípio de Interface Segregation (ISP) e permite fácil substituição de implementações.
+            </summary>
+            <typeparam name="T">Tipo da entidade</typeparam>
+        </member>
+        <member name="M:IteraClient.Interfaces.IRepository`1.GetByIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Obtém uma entidade pelo ID.
+            </summary>
+            <param name="id">ID da entidade</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Entidade encontrada ou null</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IRepository`1.GetAllAsync(System.Threading.CancellationToken)">
+            <summary>
+            Obtém todas as entidades.
+            </summary>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Lista de entidades</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IRepository`1.FindAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Obtém entidades que correspondem a um predicado.
+            </summary>
+            <param name="predicate">Expressão de filtro</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Lista de entidades filtradas</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IRepository`1.AddAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Adiciona uma nova entidade.
+            </summary>
+            <param name="entity">Entidade a ser adicionada</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Entidade adicionada</returns>
+        </member>
+        <member name="M:IteraClient.Interfaces.IRepository`1.AddRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <summary>
+            Adiciona múltiplas entidades.
+            </summary>
+            <param name="entities">Entidades a serem adicionadas</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="M:IteraClient.Interfaces.IRepository`1.UpdateAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Atualiza uma entidade existente.
+            </summary>
+            <param name="entity">Entidade a ser atualizada</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="M:IteraClient.Interfaces.IRepository`1.DeleteAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Remove uma entidade.
+            </summary>
+            <param name="entity">Entidade a ser removida</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="M:IteraClient.Interfaces.IRepository`1.GetByIdsAsync(System.Collections.Generic.IEnumerable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Obtém múltiplas entidades pelos IDs.
+            </summary>
+            <param name="ids">Lista de IDs</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Lista de entidades encontradas</returns>
+        </member>
+        <member name="T:IteraClient.Interfaces.ITokenService">
+            <summary>
+            Interface responsável pelo gerenciamento de tokens de acesso.
+            Segue o princípio de Single Responsibility (SRP) - apenas gerencia tokens.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Interfaces.ITokenService.GetAccessTokenAsync(System.Threading.CancellationToken)">
+            <summary>
+            Obtém um token de acesso válido, renovando automaticamente se necessário.
+            </summary>
+            <param name="cancellationToken">Token de cancelamento</param>
+            <returns>Token de acesso Bearer válido</returns>
+        </member>
+        <member name="T:IteraClient.Models.AccessToken">
+            <summary>
+            Modelo que representa o token de acesso retornado pela API de autenticação.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.AccessToken.Token">
+            <summary>
+            Token de acesso JWT.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Models.AddDocumentRequest">
+            <summary>
+            Modelo de requisição para adicionar um documento ao banco de dados.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.AddDocumentRequest.FileName">
+            <summary>
+            Nome do arquivo (ex: "balanco-2024.pdf").
+            </summary>
+            <example>balanco-2024.pdf</example>
+        </member>
+        <member name="P:IteraClient.Models.AddDocumentRequest.ContentBase64">
+            <summary>
+            Conteúdo do arquivo codificado em Base64.
+            </summary>
+            <example>JVBERi0xLjQKJeLjz9MK...</example>
+        </member>
+        <member name="P:IteraClient.Models.AddDocumentRequest.ContentType">
+            <summary>
+            Tipo MIME do arquivo (padrão: application/pdf).
+            </summary>
+            <example>application/pdf</example>
+        </member>
+        <member name="P:IteraClient.Models.AddDocumentRequest.Cnpj">
+            <summary>
+            CNPJ da empresa associada ao documento (14 dígitos, apenas números).
+            </summary>
+            <example>34413970000130</example>
+        </member>
+        <member name="P:IteraClient.Models.AddDocumentRequest.Source">
+            <summary>
+            Sistema ou origem do documento.
+            </summary>
+            <example>Sistema Contábil</example>
+        </member>
+        <member name="P:IteraClient.Models.AddDocumentRequest.Description">
+            <summary>
+            Descrição do documento.
+            </summary>
+            <example>Balanço Patrimonial 2024</example>
+        </member>
+        <member name="T:IteraClient.Models.ControladoraResponse">
+            <summary>
+            Modelo que representa os dados de uma controladora retornados pela API de exportação.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Models.IteraStatusResponse">
+            <summary>
+            Modelo que representa a resposta de status de um documento da API Itera.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Models.BatchProcessingResult">
+            <summary>
+            Resultado do processamento em lote de documentos.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingResult.TotalDocuments">
+            <summary>
+            Total de documentos processados.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingResult.SuccessCount">
+            <summary>
+            Documentos processados com sucesso.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingResult.ErrorCount">
+            <summary>
+            Documentos com erro.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingResult.ProcessingCount">
+            <summary>
+            Documentos em processamento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingResult.DocumentStatuses">
+            <summary>
+            Detalhes de cada documento processado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingResult.IsSuccess">
+            <summary>
+            Indica se o processamento foi concluído com sucesso.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingResult.Message">
+            <summary>
+            Mensagem geral do processamento.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Models.DocumentProcessingStatus">
+            <summary>
+            Status de processamento de um documento individual.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.DocumentProcessingStatus.DocumentId">
+            <summary>
+            ID do documento local.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.DocumentProcessingStatus.IteraDocumentId">
+            <summary>
+            ID do documento na Itera.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.DocumentProcessingStatus.FileName">
+            <summary>
+            Nome do arquivo.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.DocumentProcessingStatus.Status">
+            <summary>
+            Status atual.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.DocumentProcessingStatus.IsSuccess">
+            <summary>
+            Indica se foi processado com sucesso.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.DocumentProcessingStatus.IsProcessing">
+            <summary>
+            Indica se ainda está em processamento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.DocumentProcessingStatus.ErrorMessage">
+            <summary>
+            Mensagem de erro, se houver.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.DocumentProcessingStatus.ExportedResultsCount">
+            <summary>
+            Quantidade de resultados exportados.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Models.ExportResult">
+            <summary>
+            Resultado da exportação de dados.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.ExportResult.DocumentId">
+            <summary>
+            ID do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.ExportResult.Cnpj">
+            <summary>
+            CNPJ associado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.ExportResult.IsSuccess">
+            <summary>
+            Indica se a exportação foi bem sucedida.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.ExportResult.RecordsCount">
+            <summary>
+            Quantidade de registros exportados.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.ExportResult.Data">
+            <summary>
+            Dados exportados.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.ExportResult.ErrorMessage">
+            <summary>
+            Mensagem de erro, se houver.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Models.BatchProcessingRequest">
+            <summary>
+            Request para processamento em lote.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingRequest.DocumentIds">
+            <summary>
+            Lista de IDs dos documentos a processar.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingRequest.WaitForCompletion">
+            <summary>
+            Indica se deve aguardar a conclusão do processamento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingRequest.TimeoutSeconds">
+            <summary>
+            Tempo máximo de espera em segundos (padrão: 300 = 5 minutos).
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.BatchProcessingRequest.PollingIntervalSeconds">
+            <summary>
+            Intervalo entre verificações de status em segundos (padrão: 10).
+            </summary>
+        </member>
+        <member name="T:IteraClient.Models.UploadDocumentRequest">
+            <summary>
+            Modelo de requisição para upload de documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentRequest.File">
+            <summary>
+            Arquivo a ser enviado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentRequest.Source">
+            <summary>
+            Origem do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentRequest.Description">
+            <summary>
+            Descrição do documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentRequest.Cnpj">
+            <summary>
+            CNPJ da empresa.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Models.UploadDocumentResponse">
+            <summary>
+            Modelo de resposta do upload de documento.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentResponse.Uid">
+            <summary>
+            ID único do documento criado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentResponse.Message">
+            <summary>
+            Mensagem de retorno.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentResponse.Status">
+            <summary>
+            Status do upload.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentResponse.FileName">
+            <summary>
+            Nome do arquivo enviado.
+            </summary>
+        </member>
+        <member name="P:IteraClient.Models.UploadDocumentResponse.Cnpj">
+            <summary>
+            CNPJ associado ao documento.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Services.Implementations.AuthorizedHttpClientFactory">
+            <summary>
+            Implementação da fábrica de HttpClients autorizados.
+            Segue os princípios SOLID:
+            - SRP: Apenas cria HttpClients configurados com autorização
+            - OCP: Pode ser estendido através da interface IAuthorizedHttpClientFactory
+            - DIP: Depende de abstrações (ITokenService, IHttpClientFactory)
+            </summary>
+        </member>
+        <member name="M:IteraClient.Services.Implementations.AuthorizedHttpClientFactory.CreateAuthorizedClientAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:IteraClient.Services.Implementations.DocumentProcessingService">
+            <summary>
+            Serviço responsável pelo processamento em lote de documentos.
+            Segue os princípios SOLID:
+            - SRP: Orquestra o fluxo de processamento de documentos
+            - DIP: Depende de abstrações (interfaces)
+            </summary>
+        </member>
+        <member name="M:IteraClient.Services.Implementations.DocumentProcessingService.ProcessDocumentsAsync(System.Collections.Generic.IEnumerable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Services.Implementations.DocumentProcessingService.CheckAndUpdateStatusAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Services.Implementations.DocumentProcessingService.GetExportResultsAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Services.Implementations.DocumentProcessingService.UploadDocumentToIteraAsync(IteraClient.Data.Entities.Document,System.Threading.CancellationToken)">
+            <summary>
+            Faz upload de um documento para a Itera.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Services.Implementations.DocumentProcessingService.GetAndSaveExportResultsAsync(IteraClient.Data.Entities.Document,System.Threading.CancellationToken)">
+            <summary>
+            Obtém e salva os resultados exportados da Itera.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Services.Implementations.DocumentProcessingService.MapToExportResultEntity(IteraClient.Models.ControladoraResponse,System.Guid)">
+            <summary>
+            Mapeia ControladoraResponse para entidade DocumentExportResult.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Services.Implementations.DocumentProcessingService.MapToControladoraResponse(IteraClient.Data.Entities.DocumentExportResult)">
+            <summary>
+            Mapeia entidade DocumentExportResult para ControladoraResponse.
+            </summary>
+        </member>
+        <member name="T:IteraClient.Services.Implementations.IteraApiClient">
+            <summary>
+            Implementação do cliente da API Itera.
+            Segue os princípios SOLID:
+            - SRP: Apenas realiza chamadas à API Itera
+            - OCP: Pode ser estendido através da interface IIteraApiClient
+            - DIP: Depende de abstrações (IAuthorizedHttpClientFactory, IOptions)
+            </summary>
+        </member>
+        <member name="M:IteraClient.Services.Implementations.IteraApiClient.GetStatusAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Services.Implementations.IteraApiClient.GetExportJsonAsync(System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Services.Implementations.IteraApiClient.GetDeParaAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Services.Implementations.IteraApiClient.UploadDocumentAsync(Microsoft.AspNetCore.Http.IFormFile,System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:IteraClient.Services.Implementations.JwtValidator">
+            <summary>
+            Implementação do validador de tokens JWT.
+            Segue o princípio de Single Responsibility (SRP) - apenas valida tokens JWT.
+            </summary>
+        </member>
+        <member name="M:IteraClient.Services.Implementations.JwtValidator.IsTokenExpired(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:IteraClient.Services.Implementations.TokenService">
+            <summary>
+            Implementação do serviço de gerenciamento de tokens.
+            Segue os princípios SOLID:
+            - SRP: Apenas gerencia tokens de acesso
+            - OCP: Pode ser estendido através da interface ITokenService
+            - DIP: Depende de abstrações (IMemoryCache, IOptions, IJwtValidator)
+            </summary>
+        </member>
+        <member name="M:IteraClient.Services.Implementations.TokenService.GetAccessTokenAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:IteraClient.Services.Implementations.TokenService.RequestTokenAsync(System.Threading.CancellationToken)">
+            <summary>
+            Realiza a requisição de token ao endpoint de autenticação.
+            </summary>
+        </member>
+    </members>
+</doc>
